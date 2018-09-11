@@ -16,6 +16,7 @@ import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileFilter;
 
 import org.apache.commons.io.comparator.NameFileComparator;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -141,6 +142,19 @@ public class Excel_AE_LEA extends OutputCommon {
 
 	
 	private void getItems(XSSFSheet xws) {
+		int target_col_num = 0; 
+		// 預設從第一格開始抓，但是2018/9/11 JESSIE 反應有部分外部EXCEL 會有多餘的欄位，有可能需要從第四格 "D欄" 開始抓
+		// 預計從外部EXCEL 的第二行做資料檢核，如果遇到 CELL.VALUE = "SO" 的那就將 target_col_num 設定到CELL.COL_POS
+		Row r = xws.getRow(1);
+		Iterator<Cell> cellIterator = r.cellIterator();
+		while(cellIterator.hasNext()) {
+			Cell c = cellIterator.next();
+			String cv = c.getStringCellValue();
+			if(c.getStringCellValue().trim().equals("SO")) {
+				target_col_num = c.getColumnIndex();
+				break;
+			}
+		}
 		
 		Iterator<Row> rowIterator = xws.iterator();
 		while (rowIterator.hasNext()) {
@@ -151,15 +165,15 @@ public class Excel_AE_LEA extends OutputCommon {
 				continue;
 			}
 
-			String flag = getCellString(row, 9);
+			String flag = getCellString(row, target_col_num+9);
 			if (flag.equals(""))
 				break;
-			flag = getCellString(row,10);
+			flag = getCellString(row, target_col_num+10);
 			if(flag.contains("@"))
 				continue;
 			
 
-			String SONO = getCellString(row, 0);
+			String SONO = getCellString(row, target_col_num+0);
 			if(SONO.isEmpty()) {
 				SONO = "";
 			}
@@ -175,16 +189,16 @@ public class Excel_AE_LEA extends OutputCommon {
 				}
 			}
 			String SEQ = "";
-			String Item_Code = getCellString(row, 8);
-			String DESC_OF_GOODS = getCellString(row, 9);
-			double QTY = getCellDouble(row, 10);
-			String UNIT = getCellString(row, 11);
-			double PRICE = getCellDouble(row, 15);
-			double AMT = getCellDouble(row, 16);
+			String Item_Code = getCellString(row, target_col_num+8);
+			String DESC_OF_GOODS = getCellString(row, target_col_num+9);
+			double QTY = getCellDouble(row, target_col_num+10);
+			String UNIT = getCellString(row, target_col_num+11);
+			double PRICE = getCellDouble(row, target_col_num+15);
+			double AMT = getCellDouble(row, target_col_num+16);
 			String TRADEMARK = "";
 			String ST_MTD = "";
-			String CCCode = getCellString(row, 17);
-			double NW = getCellDouble(row, 12);
+			String CCCode = getCellString(row, target_col_num+17);
+			double NW = getCellDouble(row, target_col_num+12);
 
 			alItem.add(new Item(SONO, SEQ, Item_Code, DESC_OF_GOODS, QTY, UNIT, PRICE, AMT, TRADEMARK, ST_MTD, CCCode, NW));
 
